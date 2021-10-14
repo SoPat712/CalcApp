@@ -4,18 +4,69 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">g
+    android:fitsSystemWindows="true"
+    tools:context=".MainActivity">
 
     <LinearLayout
-        android:animateLayoutChanges="true"
         android:layout_width="match_parent"
-        android:paddingEnd="15dp"
+        android:layout_height="75dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
         android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <EditText
+            android:id="@+id/editext1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textCursorDrawable="@null"
+            android:cursorVisible="true"
+            android:autofillHints="num"
+            android:inputType="textNoSuggestions">
+        </EditText>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:layout_marginTop="200dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
         android:paddingBottom="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/button"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_button"
+            android:hapticFeedbackEnabled="true"
+            android:onClick="resizeClick"
+            android:text=">"
+            app:layout_constraintBottom_toTopOf="@+id/linlayout1"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/linlayout1"
+        android:layout_width="match_parent"
         android:layout_height="425dp"
+        android:animateLayoutChanges="true"
         android:foregroundGravity="bottom"
         android:orientation="vertical"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        android:paddingBottom="15dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
@@ -27,55 +78,60 @@
 
             <Button
                 android:id="@+id/button1"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="AC"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+
+                android:layout_weight="1"
+                android:background="@drawable/rounded_clear_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="AC"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button2"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="( )"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_operation_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="( )"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button3"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="%"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_operation_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="%"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button4"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="÷"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_operation_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="÷"
+                android:textSize="25dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -87,55 +143,59 @@
 
             <Button
                 android:id="@+id/button5"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="7"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="7"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button6"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="8"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="8"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button7"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="9"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="9"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button8"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="×"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_operation_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="×"
+                android:textSize="25dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -147,55 +207,59 @@
 
             <Button
                 android:id="@+id/button9"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="4"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="4"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button10"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="5"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="5"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button11"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="6"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="6"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button12"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="-"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_operation_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="-"
+                android:textSize="25dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -207,55 +271,59 @@
 
             <Button
                 android:id="@+id/button13"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="1"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="1"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button14"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="2"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="2"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button15"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="3"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="3"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button16"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="+"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_operation_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="+"
+                android:textSize="25dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -267,64 +335,61 @@
 
             <Button
                 android:id="@+id/button17"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="0"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="0"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button18"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="."
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="."
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button19"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="⌫"
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="⌫"
+                android:textSize="25dp" />
 
             <Button
                 android:id="@+id/button20"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
-                android:text="="
-                android:background="@drawable/rounded_button"
-                android:padding="6dp"
-                android:textSize="25dp"
-                android:hapticFeedbackEnabled="true"
+                android:layout_gravity="center"
                 android:layout_margin="4dp"
-                android:layout_gravity="center" />
+                android:layout_weight="1"
+                android:background="@drawable/rounded_equal_button"
+                android:hapticFeedbackEnabled="true"
+                android:padding="6dp"
+                android:text="="
+                android:textSize="25dp" />
         </LinearLayout>
     </LinearLayout>
 
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Button"
-        android:hapticFeedbackEnabled="true"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
