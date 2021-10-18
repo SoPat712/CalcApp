@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         } else
             super.onCreateContextMenu(menu, view, menuInfo);
     }
+
     public static double eval(final String str) {
         return new Object() {
             int pos = -1, ch;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             double parse() {
                 nextChar();
                 double x = parseExpression();
-                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char)ch);
+                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char) ch);
                 return x;
             }
 
@@ -70,8 +71,8 @@ public class MainActivity extends AppCompatActivity {
 
             double parseExpression() {
                 double x = parseTerm();
-                for (;;) {
-                    if      (eat('+')) x += parseTerm(); // addition
+                for (; ; ) {
+                    if (eat('+')) x += parseTerm(); // addition
                     else if (eat('-')) x -= parseTerm(); // subtraction
                     else return x;
                 }
@@ -79,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
 
             double parseTerm() {
                 double x = parseFactor();
-                for (;;) {
-                    if      (eat('*')) x *= parseFactor(); // multiplication
+                for (; ; ) {
+                    if (eat('*')) x *= parseFactor(); // multiplication
                     else if (eat('/')) x /= parseFactor(); // division
                     else return x;
                 }
@@ -108,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                     else if (func.equals("tan")) x = Math.tan(Math.toRadians(x));
                     else throw new RuntimeException("Unknown function: " + func);
                 } else {
-                    throw new RuntimeException("Unexpected: " + (char)ch);
+                    throw new RuntimeException("Unexpected: " + (char) ch);
                 }
 
                 if (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation
@@ -117,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }.parse();
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -257,20 +259,17 @@ public class MainActivity extends AppCompatActivity {
     }*/
 
     public void clearText(View view) {
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         editText.setText("");
         textView.setText("");
     }
-    public int nextOp(int preIndex, String ans){
-        char[] charArray = ans.toCharArray();
-        for(int i = preIndex; i <= ans.length(); i++){
-            if(charArray[i] == '*' | charArray[i] == '+' | charArray[i] == '-'| charArray[i] == '/'| charArray[i] == '*'){
-                return i;
-            }
-        }
-    }
-    public void equalPressed(View view) {
+
+    public void vibrate() {
         getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+    }
+
+    public void equalPressed(View view) {
+        vibrate();
         String cleanedText;
         String displayText = editText.getText().toString();
         /*try{
@@ -281,24 +280,66 @@ public class MainActivity extends AppCompatActivity {
         }*/
         cleanedText = displayText.replaceAll("×", "*");
         cleanedText = cleanedText.replaceAll("÷", "/");
-        cleanedText = cleanedText.replaceAll("√", "*sqrt(");
-        for(int i = 0; i < cleanedText.length(); i++){
-            char[] arr = cleanedText.toCharArray();
-            if(arr[i] == '√'){
-                
-            }
-            int nextOpIndex = nextOp(i, cleanedText);
-        }
-        cleanedText = cleanedText.replaceAll("π", "*pi");
-        Expression exp = new Expression(cleanedText);
-        String result = String.valueOf(exp.calculate());
+        cleanedText = cleanedText.replaceAll("√", "sqrt(");
+        cleanedText = cleanedText.replaceAll("π", "pi");
+        cleanedText = cleanedText.replaceAll(" ", "");
+        System.out.println("Cleaned Text: " + cleanedText);
+
+        String result = evaluate(cleanedText);
 
         editText.setText(result);
         editText.setSelection(result.length());
     }
 
+    private String evaluate(String cleanedText) {
+        if (cleanedText.isEmpty()) {
+            return "NaN";
+        } else {
+            if (cleanedText.contains("(")) {
+                int opened = 0;
+                for (int i = 0; i <= cleanedText.length(); i++) {
+                    if (cleanedText.charAt(i) == '(') {
+                        for (int j = i + 1; j < cleanedText.length(); j++) {
+                            if (cleanedText.charAt(j) == '(') {
+                                opened++;
+                            } else if (cleanedText.charAt(j) == ')' && opened != 0) {
+                                opened--;
+                            } else if (cleanedText.charAt(j) == ')' && opened == 0) {
+                                System.out.println("clsub: "+cleanedText.substring(0, i));
+                                System.out.println("clpost: "+cleanedText.substring(j));
+                                cleanedText = cleanedText.substring(0, i+1) + evaluate(cleanedText.substring(i + 1, j)) + cleanedText.substring(j);
+                            } else {
+                                System.out.println("IDK how you got here");
+                            }
+                        }
+                    }
+                }
+
+            } else if (cleanedText.contains("*") || cleanedText.contains("/")) {
+                if (cleanedText.contains("*")) {
+                    int opIndex = cleanedText.indexOf("*");
+                } else if (cleanedText.contains("/")) {
+                    int opIndex = cleanedText.indexOf("/");
+                }
+            } else if (cleanedText.contains("+") || cleanedText.contains("-")) {
+                if (cleanedText.contains("+")) {
+                    int opIndex = cleanedText.indexOf("+");
+
+                } else if (cleanedText.contains("-")) {
+                    int opIndex = cleanedText.indexOf("-");
+                    String bef = cleanedText.substring(0,opIndex-1);
+                    String aft = cleanedText.substring(opIndex);
+                    Double befDoub = Double.valueOf(bef);
+                    Double aftDoub = Double.valueOf(aft);
+                    Double ans = befDoub - aftDoub;
+                }
+            }
+        }
+        return cleanedText;
+    }
+
     public void perenPressed(View view) {
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         int cursor = editText.getSelectionStart();
         int openPer = 0;
         int closedPer = 0;
@@ -321,52 +362,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sqrtPressed(View view) {
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText("√");
     }
 
     public void piPressed(View view) {
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText("π");
     }
 
     public void expPressed(View view) {
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText("^");
     }
 
     public void factPressed(View view) {
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText("!");
     }
 
     public void subPressed(View view) {
         Button button = findViewById(view.getId());
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText(button.getText().toString());
     }
 
     public void addPressed(View view) {
         Button button = findViewById(view.getId());
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText(button.getText().toString());
     }
 
     public void multPressed(View view) {
         Button button = findViewById(view.getId());
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText(button.getText().toString());
     }
 
     public void divPressed(View view) {
         Button button = findViewById(view.getId());
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText(button.getText().toString());
     }
 
     public void percentPressed(View view) {
         Button button = findViewById(view.getId());
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText(button.getText().toString());
     }
 
@@ -381,16 +422,18 @@ public class MainActivity extends AppCompatActivity {
 
     public void addNum(View view) {
         Button button = findViewById(view.getId());
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         updateText(button.getText().toString());
     }
 
     public void addDec(View view) {
-
+        Button button = findViewById(view.getId());
+        vibrate();
+        updateText(button.getText().toString());
     }
 
     public void removeNum(View view) {
-        getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        vibrate();
         int cursor = editText.getSelectionStart();
         int len = editText.getText().length();
 
