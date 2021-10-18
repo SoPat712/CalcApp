@@ -10,7 +10,7 @@
     <RelativeLayout
         android:id="@+id/editLayout"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="200dp"
         android:animateLayoutChanges="true"
         android:background="@drawable/layout_bg"
         android:foregroundGravity="top"
