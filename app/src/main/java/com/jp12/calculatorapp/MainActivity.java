@@ -261,7 +261,14 @@ public class MainActivity extends AppCompatActivity {
         editText.setText("");
         textView.setText("");
     }
-
+    public int nextOp(int preIndex, String ans){
+        char[] charArray = ans.toCharArray();
+        for(int i = preIndex; i <= ans.length(); i++){
+            if(charArray[i] == '*' | charArray[i] == '+' | charArray[i] == '-'| charArray[i] == '/'| charArray[i] == '*'){
+                return i;
+            }
+        }
+    }
     public void equalPressed(View view) {
         getWindow().getDecorView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
         String cleanedText;
@@ -274,8 +281,15 @@ public class MainActivity extends AppCompatActivity {
         }*/
         cleanedText = displayText.replaceAll("×", "*");
         cleanedText = cleanedText.replaceAll("÷", "/");
-        cleanedText = cleanedText.replaceAll("√", "sqrt");
-        cleanedText = cleanedText.replaceAll("π", "pi");
+        cleanedText = cleanedText.replaceAll("√", "*sqrt(");
+        for(int i = 0; i < cleanedText.length(); i++){
+            char[] arr = cleanedText.toCharArray();
+            if(arr[i] == '√'){
+                
+            }
+            int nextOpIndex = nextOp(i, cleanedText);
+        }
+        cleanedText = cleanedText.replaceAll("π", "*pi");
         Expression exp = new Expression(cleanedText);
         String result = String.valueOf(exp.calculate());
 
