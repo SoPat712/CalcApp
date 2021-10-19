@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import org.mariuszgromada.math.mxparser.*;
+import org.w3c.dom.Text;
 
 import android.text.Editable;
 import android.text.TextUtils;
@@ -24,9 +25,12 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
+
 public class MainActivity extends AppCompatActivity {
     private EditText editText;
     private TextView textView;
+    private boolean equalPressedLast = false;
 
     //private int relHeightMain;
     @Override
@@ -172,96 +176,16 @@ public class MainActivity extends AppCompatActivity {
         //relHeightMain = height - linParams.height - extraParams.height;
         relParams.height = height - linParams.height - extraParams.height;
         relativeLayout.setLayoutParams(relParams);
+
     }
 
-    /*public static double eval(String str) {
-        str = str.replaceAll("×", "*");
-        str = str.replaceAll("÷", "/");
-        str = str.replaceAll("√", "sqrt");
-        String finalStr = str;
-        return new Object() {
-            int pos = -1, ch;
-
-            void nextChar() {
-                ch = (++pos < finalStr.length()) ? finalStr.charAt(pos) : -1;
-            }
-
-            boolean eat(int charToEat) {
-                while (ch == ' ') nextChar();
-                if (ch == charToEat) {
-                    nextChar();
-                    return true;
-                }
-                return false;
-            }
-
-            double parse() {
-                nextChar();
-                double x = parseExpression();
-                if (pos < finalStr.length()) throw new RuntimeException("Unexpected: " + (char) ch);
-                return x;
-            }
-
-            // Grammar:
-            // expression = term | expression `+` term | expression `-` term
-            // term = factor | term `*` factor | term `/` factor
-            // factor = `+` factor | `-` factor | `(` expression `)`
-            //        | number | functionName factor | factor `^` factor
-
-            double parseExpression() {
-                double x = parseTerm();
-                for (; ; ) {
-                    if (eat('+')) x += parseTerm(); // addition
-                    else if (eat('-')) x -= parseTerm(); // subtraction
-                    else return x;
-                }
-            }
-
-            double parseTerm() {
-                double x = parseFactor();
-                for (; ; ) {
-                    if (eat('*')) x *= parseFactor(); // multiplication
-                    else if (eat('/')) x /= parseFactor(); // division
-                    else return x;
-                }
-            }
-
-            double parseFactor() {
-                if (eat('+')) return parseFactor(); // unary plus
-                if (eat('-')) return -parseFactor(); // unary minus
-
-                double x;
-                int startPos = this.pos;
-                if (eat('(')) { // parentheses
-                    x = parseExpression();
-                    eat(')');
-                } else if ((ch >= '0' && ch <= '9') || ch == '.') { // numbers
-                    while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
-                    x = Double.parseDouble(finalStr.substring(startPos, this.pos));
-                } else if (ch >= 'a' && ch <= 'z') { // functions
-                    while (ch >= 'a' && ch <= 'z') nextChar();
-                    String func = finalStr.substring(startPos, this.pos);
-                    x = parseFactor();
-                    if (func.equals("sqrt")) x = Math.sqrt(x);
-                    else if (func.equals("sin")) x = Math.sin(Math.toRadians(x));
-                    else if (func.equals("cos")) x = Math.cos(Math.toRadians(x));
-                    else if (func.equals("tan")) x = Math.tan(Math.toRadians(x));
-                    else throw new RuntimeException("Unknown function: " + func);
-                } else {
-                    throw new RuntimeException("Unexpected: " + (char) ch);
-                }
-
-                if (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation
-
-                return x;
-            }
-        }.parse();
-    }*/
-
     public void clearText(View view) {
+        equalPressedLast = false;
         vibrate();
         editText.setText("");
         textView.setText("");
+        TextView constText = findViewById(R.id.constTxt);
+        constText.setText("");
     }
 
     public void vibrate() {
@@ -270,72 +194,541 @@ public class MainActivity extends AppCompatActivity {
 
     public void equalPressed(View view) {
         vibrate();
-        String cleanedText;
-        String displayText = editText.getText().toString();
         /*try{
             ans = eval(display.getText().toString());
         }
         catch (Exception e){
             System.out.println("Solve error: "+e.toString());
         }*/
-        cleanedText = displayText.replaceAll("×", "*");
-        cleanedText = cleanedText.replaceAll("÷", "/");
-        cleanedText = cleanedText.replaceAll("√", "sqrt(");
-        cleanedText = cleanedText.replaceAll("π", "pi");
-        cleanedText = cleanedText.replaceAll(" ", "");
-        System.out.println("Cleaned Text: " + cleanedText);
 
-        String result = evaluate(cleanedText);
-
-        editText.setText(result);
-        editText.setSelection(result.length());
+        try {
+            String result = evaluate(editText.getText().toString());
+            DecimalFormat format = new DecimalFormat("0.###############");
+            result = format.format(Double.parseDouble(result));
+            editText.setText(result);
+            editText.setSelection(result.length());
+            equalPressedLast = true;
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }
+    public String evaluate(String cleanedText) {
+        try {
+            cleanedText = cleanedText.replaceAll("×", "*");
+            cleanedText = cleanedText.replaceAll("÷", "/");
+            cleanedText = cleanedText.replaceAll("√", "sqrt");
+            char[] charArray = cleanedText.toCharArray();
+            cleanedText = cleanedText.replaceAll("π", "3.14159265358979");
+            System.out.println("Cleaned Text: " + cleanedText);
 
-    private String evaluate(String cleanedText) {
-        if (cleanedText.isEmpty()) {
-            return "NaN";
-        } else {
-            if (cleanedText.contains("(")) {
-                int opened = 0;
-                for (int i = 0; i <= cleanedText.length(); i++) {
-                    if (cleanedText.charAt(i) == '(') {
-                        for (int j = i + 1; j < cleanedText.length(); j++) {
-                            if (cleanedText.charAt(j) == '(') {
-                                opened++;
-                            } else if (cleanedText.charAt(j) == ')' && opened != 0) {
-                                opened--;
-                            } else if (cleanedText.charAt(j) == ')' && opened == 0) {
-                                System.out.println("clsub: "+cleanedText.substring(0, i));
-                                System.out.println("clpost: "+cleanedText.substring(j));
-                                cleanedText = cleanedText.substring(0, i+1) + evaluate(cleanedText.substring(i + 1, j)) + cleanedText.substring(j);
-                            } else {
-                                System.out.println("IDK how you got here");
+            if (charArray[0] == '+' || charArray[0] == '*' || charArray[0] == '/') {
+                return "NaN";
+            } else if (charArray[charArray.length - 1] == '+' || charArray[charArray.length - 1] == '*' || charArray[charArray.length - 1] == '/' || charArray[charArray.length - 1] == '-') {
+                return "NaN";
+            } else if (cleanedText.contains("*/") || cleanedText.contains("*+") || cleanedText.contains("**") ||cleanedText.contains("+/") || cleanedText.contains("+*") ||  cleanedText.contains("++") || cleanedText.contains("/*") || cleanedText.contains("/+")||  cleanedText.contains("//") ||  cleanedText.contains("-/")||  cleanedText.contains("-+")||  cleanedText.contains("-*")) {
+                return "NaN";
+            } else {
+            }
+            while (cleanedText.contains("*") || cleanedText.contains("/") || cleanedText.contains("+") || cleanedText.contains("-")) {
+                if (cleanedText.contains("*") || cleanedText.contains("/")) {
+                    if (cleanedText.indexOf('*') < cleanedText.indexOf('/')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '*') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef * aft);
+                                    cleanedText = (String.valueOf(bef * aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef * aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef * aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '/') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef / aft);
+                                    cleanedText = (String.valueOf(bef / aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef / aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef / aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex);
+                                }
                             }
                         }
+                    } else if (cleanedText.indexOf('*') > cleanedText.indexOf('/')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '/') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef / aft);
+                                    cleanedText = (String.valueOf(bef / aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef / aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef / aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '*') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef * aft);
+                                    cleanedText = (String.valueOf(bef * aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef * aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef * aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            }
+                        }
+                    } else {
+                        return "NaN";
+                    }
+                } else if (cleanedText.contains("+") || cleanedText.contains("-")) {
+                    if (cleanedText.indexOf('+') < cleanedText.indexOf('-')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '+') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef + aft);
+                                    cleanedText = (String.valueOf(bef + aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef + aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef + aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '-') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + (bef - aft));
+                                    cleanedText = (String.valueOf(bef - aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef - aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef - aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            }
+                        }
+                    } else if (cleanedText.indexOf('+') > cleanedText.indexOf('-')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '-') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + (bef - aft));
+                                    cleanedText = (String.valueOf(bef - aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef - aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef - aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '+') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef + aft);
+                                    cleanedText = (String.valueOf(bef + aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef + aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef + aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            }
+                        }
+                    } else {
+                        return "NaN";
                     }
                 }
-
-            } else if (cleanedText.contains("*") || cleanedText.contains("/")) {
-                if (cleanedText.contains("*")) {
-                    int opIndex = cleanedText.indexOf("*");
-                } else if (cleanedText.contains("/")) {
-                    int opIndex = cleanedText.indexOf("/");
-                }
-            } else if (cleanedText.contains("+") || cleanedText.contains("-")) {
-                if (cleanedText.contains("+")) {
-                    int opIndex = cleanedText.indexOf("+");
-
-                } else if (cleanedText.contains("-")) {
-                    int opIndex = cleanedText.indexOf("-");
-                    String bef = cleanedText.substring(0,opIndex-1);
-                    String aft = cleanedText.substring(opIndex);
-                    Double befDoub = Double.valueOf(bef);
-                    Double aftDoub = Double.valueOf(aft);
-                    Double ans = befDoub - aftDoub;
-                }
             }
+        } catch (Exception e) {
+            System.out.println(e);
         }
         return cleanedText;
+    }
+    public String constEvaluate(String cleanedText) {
+        try {
+            cleanedText = cleanedText.replaceAll("×", "*");
+            cleanedText = cleanedText.replaceAll("÷", "/");
+            cleanedText = cleanedText.replaceAll("√", "sqrt");
+            char[] charArray = cleanedText.toCharArray();
+            cleanedText = cleanedText.replaceAll("π", "3.14159265358979");
+            System.out.println("Cleaned Text: " + cleanedText);
+
+            while (cleanedText.contains("*") || cleanedText.contains("/") || cleanedText.contains("+") || cleanedText.contains("-")) {
+                if (cleanedText.contains("*") || cleanedText.contains("/")) {
+                    if (cleanedText.indexOf('*') < cleanedText.indexOf('/')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '*') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef * aft);
+                                    cleanedText = (String.valueOf(bef * aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef * aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef * aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '/') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef / aft);
+                                    cleanedText = (String.valueOf(bef / aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef / aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef / aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            }
+                        }
+                    } else if (cleanedText.indexOf('*') > cleanedText.indexOf('/')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '/') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef / aft);
+                                    cleanedText = (String.valueOf(bef / aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef / aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef / aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef / aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '*') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef * aft);
+                                    cleanedText = (String.valueOf(bef * aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef * aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef * aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef * aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            }
+                        }
+                    } else {
+                        return "NaN";
+                    }
+                } else if (cleanedText.contains("+") || cleanedText.contains("-")) {
+                    if (cleanedText.indexOf('+') < cleanedText.indexOf('-')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '+') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef + aft);
+                                    cleanedText = (String.valueOf(bef + aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef + aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef + aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '-') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + (bef - aft));
+                                    cleanedText = (String.valueOf(bef - aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef - aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef - aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            }
+                        }
+                    } else if (cleanedText.indexOf('+') > cleanedText.indexOf('-')) {
+                        for (int a = 0; a < cleanedText.length(); a++) {
+                            char[] tempArray = cleanedText.toCharArray();
+                            if (tempArray[a] == '-') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + (bef - aft));
+                                    cleanedText = (String.valueOf(bef - aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef - aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef - aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef - aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            } else if (tempArray[a] == '+') {
+                                int lastOpIndex = lastOp(cleanedText, a);
+                                int nextOpIndex = nextOp(cleanedText, a);
+                                if (lastOpIndex == -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println("Answer: " + bef + aft);
+                                    cleanedText = (String.valueOf(bef + aft));
+                                    return cleanedText;
+                                } else if (lastOpIndex == -1 && nextOpIndex != -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(0, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(bef + aft + cleanedText.substring(nextOpIndex));
+                                    cleanedText = evaluate(bef + aft + cleanedText.substring(nextOpIndex));
+                                } else if (lastOpIndex != -1 && nextOpIndex == -1) {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft));
+                                } else {
+                                    double bef = Double.parseDouble(cleanedText.substring(lastOpIndex + 1, a));
+                                    double aft = Double.parseDouble(cleanedText.substring(a + 1, nextOpIndex));
+                                    System.out.println(cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex));
+                                    cleanedText = cleanedText.substring(0, lastOpIndex + 1) + evaluate(String.valueOf(bef + aft)) + cleanedText.substring(nextOpIndex);
+                                }
+                            }
+                        }
+                    } else {
+                        return "";
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return cleanedText;
+    }
+
+    private int lastOp(String text, int index) {
+        char[] chars = text.toCharArray();
+        for (int i = chars.length - 1; i >= 0; i--) {
+            if ((chars[i] == '*' || chars[i] == '/' || chars[i] == '+' || chars[i] == '-') && (i < index)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int nextOp(String text, int index) {
+        char[] chars = text.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            if ((chars[i] == '*' || chars[i] == '/' || chars[i] == '+' || chars[i] == '-') && (i > index) && (i-1 != index)){
+                return i;
+            }
+        }
+        return -1;
     }
 
     public void perenPressed(View view) {
@@ -346,16 +739,16 @@ public class MainActivity extends AppCompatActivity {
         int textLen = editText.getText().length();
 
         for (int i = 0; i < cursor; i++) {
-            if (editText.getText().toString().substring(i, i + 1).equals("(")) {
+            if (editText.getText().toString().charAt(i) == '(') {
                 openPer += 1;
             }
-            if (editText.getText().toString().substring(i, i + 1).equals(")")) {
+            if (editText.getText().toString().charAt(i) == ')') {
                 closedPer += 1;
             }
         }
-        if (openPer == closedPer || editText.getText().toString().substring(textLen - 1, textLen).equals("(")) {
+        if (openPer == closedPer || editText.getText().toString().charAt(textLen - 1) == '(') {
             updateText("(");
-        } else if (closedPer < openPer || !editText.getText().toString().substring(textLen - 1, textLen).equals("(")) {
+        } else if (closedPer < openPer || editText.getText().toString().charAt(textLen - 1) != '(') {
             updateText(")");
         }
         editText.setSelection(cursor + 1);
@@ -364,51 +757,41 @@ public class MainActivity extends AppCompatActivity {
     public void sqrtPressed(View view) {
         vibrate();
         updateText("√");
+        constUpdate();
     }
 
     public void piPressed(View view) {
         vibrate();
         updateText("π");
+        constUpdate();
     }
 
     public void expPressed(View view) {
         vibrate();
         updateText("^");
+        constUpdate();
     }
 
     public void factPressed(View view) {
         vibrate();
         updateText("!");
+        constUpdate();
     }
 
-    public void subPressed(View view) {
+
+    public void opPressed(View view) {
         Button button = findViewById(view.getId());
         vibrate();
         updateText(button.getText().toString());
-    }
-
-    public void addPressed(View view) {
-        Button button = findViewById(view.getId());
-        vibrate();
-        updateText(button.getText().toString());
-    }
-
-    public void multPressed(View view) {
-        Button button = findViewById(view.getId());
-        vibrate();
-        updateText(button.getText().toString());
-    }
-
-    public void divPressed(View view) {
-        Button button = findViewById(view.getId());
-        vibrate();
-        updateText(button.getText().toString());
+        equalPressedLast = false;
+        constUpdate();
     }
 
     public void percentPressed(View view) {
         Button button = findViewById(view.getId());
         vibrate();
         updateText(button.getText().toString());
+        constUpdate();
     }
 
     private void updateText(String string) {
@@ -418,18 +801,41 @@ public class MainActivity extends AppCompatActivity {
         String rightStr = oldStr.substring(cursorPos);
         editText.setText(String.format("%s%s%s", leftStr, string, rightStr));
         editText.setSelection(cursorPos + 1);
+        constUpdate();
+    }
+
+    private void updateReplaceText(String string) {
+        editText.setText(string);
+        editText.setSelection(string.length());
+        constUpdate();
     }
 
     public void addNum(View view) {
         Button button = findViewById(view.getId());
         vibrate();
-        updateText(button.getText().toString());
+        if (equalPressedLast) {
+            updateReplaceText(button.getText().toString());
+        } else {
+            updateText(button.getText().toString());
+        }
+        constUpdate();
     }
-
+    public void constUpdate(){
+        TextView constText = findViewById(R.id.constTxt);
+        try {
+            String result = constEvaluate(editText.getText().toString());
+            DecimalFormat format = new DecimalFormat("0.###############");
+            result = format.format(Double.parseDouble(result));
+            constText.setText(result);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
     public void addDec(View view) {
         Button button = findViewById(view.getId());
         vibrate();
         updateText(button.getText().toString());
+        constUpdate();
     }
 
     public void removeNum(View view) {
@@ -442,6 +848,7 @@ public class MainActivity extends AppCompatActivity {
             editText.setText(a.substring(0, cursor - 1) + a.substring(cursor));
             editText.setSelection(cursor - 1);
         }
+        constUpdate();
     }
     /*
     public void resizeClick(View view) {

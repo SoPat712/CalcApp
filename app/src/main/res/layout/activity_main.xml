@@ -57,6 +57,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="LabelFor" />
+
+        <TextView
+            android:id="@+id/constTxt"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true"
+            android:gravity="top|end"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:text=""
+            android:textSize="30sp" />
     </RelativeLayout>
 
     <LinearLayout
@@ -372,7 +383,7 @@
                 android:padding="6dp"
                 android:text="÷"
                 android:textSize="25dp"
-                android:onClick="divPressed"/>
+                android:onClick="opPressed"/>
         </LinearLayout>
 
         <LinearLayout
@@ -440,7 +451,7 @@
                 android:padding="6dp"
                 android:text="×"
                 android:textSize="25dp"
-                android:onClick="multPressed"/>
+                android:onClick="opPressed"/>
         </LinearLayout>
 
         <LinearLayout
@@ -508,7 +519,7 @@
                 android:padding="6dp"
                 android:text="-"
                 android:textSize="25dp"
-                android:onClick="subPressed"/>
+                android:onClick="opPressed"/>
         </LinearLayout>
 
         <LinearLayout
@@ -576,7 +587,7 @@
                 android:padding="6dp"
                 android:text="+"
                 android:textSize="25dp"
-                android:onClick="addPressed"/>
+                android:onClick="opPressed"/>
         </LinearLayout>
 
         <LinearLayout
