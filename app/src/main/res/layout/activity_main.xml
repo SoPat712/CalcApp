@@ -92,6 +92,7 @@
             android:layout_gravity="center"
             android:layout_margin="4dp"
             android:layout_weight="1"
+            android:textColor="#FF0000"
             android:background="@null"
             android:hapticFeedbackEnabled="true"
             android:onClick="sqrtPressed"
@@ -124,6 +125,7 @@
             android:layout_margin="4dp"
             android:layout_weight="1"
             android:background="@null"
+            android:textColor="#FF0000"
             android:hapticFeedbackEnabled="true"
             android:onClick="expPressed"
             android:padding="6dp"
@@ -141,6 +143,7 @@
             android:background="@null"
             android:hapticFeedbackEnabled="true"
             android:onClick="factPressed"
+            android:textColor="#FF0000"
             android:padding="6dp"
             android:text="!"
             android:textSize="25dp" />
