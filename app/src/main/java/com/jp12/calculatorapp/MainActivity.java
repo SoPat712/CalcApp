@@ -3,6 +3,7 @@ package com.jp12.calculatorapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Color;
+import android.media.audiofx.Equalizer;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -31,97 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText editText;
     private TextView textView;
     private boolean equalPressedLast = false;
-
-    //private int relHeightMain;
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo) {
-        if (view.getId() == R.id.editText) {
-            menu.removeItem(2);
-            menu.removeItem(3);
-
-        } else
-            super.onCreateContextMenu(menu, view, menuInfo);
-    }
-
-    public static double eval(final String str) {
-        return new Object() {
-            int pos = -1, ch;
-
-            void nextChar() {
-                ch = (++pos < str.length()) ? str.charAt(pos) : -1;
-            }
-
-            boolean eat(int charToEat) {
-                while (ch == ' ') nextChar();
-                if (ch == charToEat) {
-                    nextChar();
-                    return true;
-                }
-                return false;
-            }
-
-            double parse() {
-                nextChar();
-                double x = parseExpression();
-                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char) ch);
-                return x;
-            }
-
-            // Grammar:
-            // expression = term | expression `+` term | expression `-` term
-            // term = factor | term `*` factor | term `/` factor
-            // factor = `+` factor | `-` factor | `(` expression `)`
-            //        | number | functionName factor | factor `^` factor
-
-            double parseExpression() {
-                double x = parseTerm();
-                for (; ; ) {
-                    if (eat('+')) x += parseTerm(); // addition
-                    else if (eat('-')) x -= parseTerm(); // subtraction
-                    else return x;
-                }
-            }
-
-            double parseTerm() {
-                double x = parseFactor();
-                for (; ; ) {
-                    if (eat('*')) x *= parseFactor(); // multiplication
-                    else if (eat('/')) x /= parseFactor(); // division
-                    else return x;
-                }
-            }
-
-            double parseFactor() {
-                if (eat('+')) return parseFactor(); // unary plus
-                if (eat('-')) return -parseFactor(); // unary minus
-
-                double x;
-                int startPos = this.pos;
-                if (eat('(')) { // parentheses
-                    x = parseExpression();
-                    eat(')');
-                } else if ((ch >= '0' && ch <= '9') || ch == '.') { // numbers
-                    while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
-                    x = Double.parseDouble(str.substring(startPos, this.pos));
-                } else if (ch >= 'a' && ch <= 'z') { // functions
-                    while (ch >= 'a' && ch <= 'z') nextChar();
-                    String func = str.substring(startPos, this.pos);
-                    x = parseFactor();
-                    if (func.equals("sqrt")) x = Math.sqrt(x);
-                    else if (func.equals("sin")) x = Math.sin(Math.toRadians(x));
-                    else if (func.equals("cos")) x = Math.cos(Math.toRadians(x));
-                    else if (func.equals("tan")) x = Math.tan(Math.toRadians(x));
-                    else throw new RuntimeException("Unknown function: " + func);
-                } else {
-                    throw new RuntimeException("Unexpected: " + (char) ch);
-                }
-
-                if (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation
-
-                return x;
-            }
-        }.parse();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
             TextView textView1 = findViewById(R.id.constTxt);
             textView1.setText("");
         } catch (Exception e) {
+            editText.setText("NaN");
             System.out.println(e);
         }
     }
@@ -249,6 +160,20 @@ public class MainActivity extends AppCompatActivity {
             cleanedText = cleanedText.replaceAll("÷", "/");
             cleanedText = cleanedText.replaceAll("√", "sqrt");
             char[] charArray = cleanedText.toCharArray();
+            for(int i = 0; i < cleanedText.length(); i++){
+                if(cleanedText.charAt(i) == '(' && (cleanedText.charAt(i-1) == '1' || cleanedText.charAt(i-1) == '2' ||cleanedText.charAt(i-1) == '3' ||cleanedText.charAt(i-1) == '4' ||cleanedText.charAt(i-1) == '5' ||cleanedText.charAt(i-1) == '6' ||cleanedText.charAt(i-1) == '7' ||cleanedText.charAt(i-1) == '8' ||cleanedText.charAt(i-1) == '9' ||cleanedText.charAt(i-1) == '0' )){
+                    cleanedText = cleanedText.substring(0,i) + "*" + cleanedText.substring(i);
+                }else{
+
+                }
+            }
+            for(int i = 0; i < cleanedText.length(); i++){
+                if(cleanedText.charAt(i) == ')' && (cleanedText.charAt(i+1) == '1' || cleanedText.charAt(i+1) == '2' ||cleanedText.charAt(i+1) == '3' ||cleanedText.charAt(i+1) == '4' ||cleanedText.charAt(i+1) == '5' ||cleanedText.charAt(i+1) == '6' ||cleanedText.charAt(i+1) == '7' ||cleanedText.charAt(i+1) == '8' ||cleanedText.charAt(i+1) == '9' ||cleanedText.charAt(i+1) == '0' )){
+                    cleanedText = cleanedText.substring(0,i+1) + "*" + cleanedText.substring(i+1);
+                }else{
+
+                }
+            }
             cleanedText = cleanedText.replaceAll("π", "3.14159265358979");
             cleanedText = cleanedText.replaceAll("%", "/100");
             System.out.println("Cleaned Text: " + cleanedText);
@@ -485,46 +410,62 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             System.out.println(e);
+            return "NaN";
         }
         return cleanedText;
     }
-    public String constPerEvaluate(String text){
-        text = text.replaceAll("×", "*");
-        text = text.replaceAll("÷", "/");
-        text = text.replaceAll("√", "sqrt");
-        char[] charArray = text.toCharArray();
-        text = text.replaceAll("π", "3.14159265358979");
-        text = text.replaceAll("%", "/100");
-        System.out.println("Cleaned Text: " + text);
+    public String constPerEvaluate(String cleanedText){
+        cleanedText = cleanedText.replaceAll("×", "*");
+        cleanedText = cleanedText.replaceAll("÷", "/");
+        cleanedText = cleanedText.replaceAll("√", "sqrt");
+        char[] charArray = cleanedText.toCharArray();
+        cleanedText = cleanedText.replaceAll("π", "3.14159265358979");
+        cleanedText = cleanedText.replaceAll("%", "/100");
+        for(int i = 1; i < cleanedText.length(); i++){
+            if(cleanedText.charAt(i) == '(' && (cleanedText.charAt(i-1) == ')' || cleanedText.charAt(i-1) == '1' || cleanedText.charAt(i-1) == '2' ||cleanedText.charAt(i-1) == '3' ||cleanedText.charAt(i-1) == '4' ||cleanedText.charAt(i-1) == '5' ||cleanedText.charAt(i-1) == '6' ||cleanedText.charAt(i-1) == '7' ||cleanedText.charAt(i-1) == '8' ||cleanedText.charAt(i-1) == '9' ||cleanedText.charAt(i-1) == '0' )){
+                cleanedText = cleanedText.substring(0,i) + "*" + cleanedText.substring(i);
+            }else{
+
+            }
+        }
+        for(int i = 0; i < cleanedText.length()-1; i++){
+
+            if(cleanedText.charAt(i) == ')' && (cleanedText.charAt(i+1) == '(' || cleanedText.charAt(i+1) == '1' || cleanedText.charAt(i+1) == '2' ||cleanedText.charAt(i+1) == '3' ||cleanedText.charAt(i+1) == '4' ||cleanedText.charAt(i+1) == '5' ||cleanedText.charAt(i+1) == '6' ||cleanedText.charAt(i+1) == '7' ||cleanedText.charAt(i+1) == '8' ||cleanedText.charAt(i+1) == '9' ||cleanedText.charAt(i+1) == '0' )){
+                cleanedText = cleanedText.substring(0,i+1) + "*" + cleanedText.substring(i+1);
+            }else{
+
+            }
+        }
+        System.out.println("Cleaned Text: " + cleanedText);
         if (charArray[0] == '+' || charArray[0] == '*' || charArray[0] == '/') {
             return "";
         } else if (charArray[charArray.length - 1] == '+' || charArray[charArray.length - 1] == '*' || charArray[charArray.length - 1] == '/' || charArray[charArray.length - 1] == '-') {
             return "";
-        } else if (text.contains("*/") || text.contains("*+") || text.contains("**") ||text.contains("+/") || text.contains("+*") ||  text.contains("++") || text.contains("/*") || text.contains("/+")||  text.contains("//") ||  text.contains("-/")||  text.contains("-+")||  text.contains("-*")) {
+        } else if (cleanedText.contains("*/") || cleanedText.contains("*+") || cleanedText.contains("**") ||cleanedText.contains("+/") || cleanedText.contains("+*") ||  cleanedText.contains("++") || cleanedText.contains("/*") || cleanedText.contains("/+")||  cleanedText.contains("//") ||  cleanedText.contains("-/")||  cleanedText.contains("-+")||  cleanedText.contains("-*")) {
             return "";
         } else {
         }
-        while (text.contains("(")) {
+        while (cleanedText.contains("(")) {
             int openCounter = 0;
             int closedCounter = 0;
-            for(int i = 0; i < text.length(); i++){
-                if(text.charAt(i) == '('){
+            for(int i = 0; i < cleanedText.length(); i++){
+                if(cleanedText.charAt(i) == '('){
                     openCounter++;
-                } else if (text.charAt(i) == ')'){
+                } else if (cleanedText.charAt(i) == ')'){
                     closedCounter++;
                 }
             }
             if(openCounter != closedCounter){
                 return "";
             } else{
-                char[] arr = text.toCharArray();
-                int closePer = findClosingParen(arr, text.indexOf("("));
-                text = text.substring(0,text.indexOf("(")) + perEval(text.substring(text.indexOf("(")+1,
-                        closePer)) + text.substring(closePer+1);
+                char[] arr = cleanedText.toCharArray();
+                int closePer = findClosingParen(arr, cleanedText.indexOf("("));
+                cleanedText = cleanedText.substring(0,cleanedText.indexOf("(")) + perEval(cleanedText.substring(cleanedText.indexOf("(")+1,
+                        closePer)) + cleanedText.substring(closePer+1);
             }
         }
-        System.out.println("const text: "+ text);
-        return constEvaluate(text);
+        System.out.println("const text: "+ cleanedText);
+        return constEvaluate(cleanedText);
     }
     public String constEvaluate(String cleanedText) {
         try {
@@ -793,7 +734,7 @@ public class MainActivity extends AppCompatActivity {
                 closedPer += 1;
             }
         }
-        if (openPer == closedPer || editText.getText().toString().charAt(textLen - 1) == '(' || editText.getText().toString().charAt(textLen - 1) == '*' || editText.getText().toString().charAt(textLen - 1) == '+' || editText.getText().toString().charAt(textLen - 1) == '-' || editText.getText().toString().charAt(textLen - 1) == '/') {
+        if (openPer == closedPer || editText.getText().toString().charAt(textLen - 1) == '(' || editText.getText().toString().charAt(textLen - 1) == '×' || editText.getText().toString().charAt(textLen - 1) == '+' || editText.getText().toString().charAt(textLen - 1) == '-' || editText.getText().toString().charAt(textLen - 1) == '÷') {
             updateText("(");
         } else if (closedPer < openPer || editText.getText().toString().charAt(textLen - 1) != '(') {
             updateText(")");
@@ -868,6 +809,7 @@ public class MainActivity extends AppCompatActivity {
         constUpdate();
     }
     public void constUpdate(){
+        equalPressedLast = false;
         TextView constText = findViewById(R.id.constTxt);
         try {
             String result = constPerEvaluate(editText.getText().toString());
